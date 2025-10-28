@@ -115,7 +115,7 @@ export default function AuthPage() {
       const data = await response.json()
       
       if (!response.ok) {
-        throw new Error(data.message || 'Signup failed')
+        throw new Error(data.message || 'Signup failed!')
       }
 
       toast({
@@ -139,7 +139,7 @@ export default function AuthPage() {
       console.error('Signup error:', error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Signup failed. Please try again.",
+        description: error instanceof Error ? error.message : "Signup failed! Please try again!",
         variant: "destructive"
       })
     } finally {
@@ -154,7 +154,7 @@ export default function AuthPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">Task Manager</CardTitle>
             <CardDescription className="text-center">
-              Manage your tasks efficiently
+              Manage your tasks efficiently!
             </CardDescription>
           </CardHeader>
           

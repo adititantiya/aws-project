@@ -36,13 +36,13 @@ export default function SignupPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+        throw new Error(data.error || 'Registration failed!');
       }
 
       // Redirect to login page after successful registration
       router.push('/login');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'An error occurred!');
     } finally {
       setLoading(false);
     }

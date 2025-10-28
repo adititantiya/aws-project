@@ -98,14 +98,14 @@ export default function HomePage() {
         <div className="grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-4">Your Tasks</h2>
+              <h2 className="text-xl font-bold mb-4">Your Tasks</h2>
               <Suspense fallback={<TaskListSkeleton />}>
                 <TaskList />
               </Suspense>
             </div>
           </div>
           <div>
-            <h2 className="text-xl font-semibold mb-4">AI Recommendations</h2>
+            <h2 className="text-xl font-bold mb-4">AI Recommendations</h2>
             <AiRecommendations />
           </div>
         </div>
