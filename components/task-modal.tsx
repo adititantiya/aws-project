@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { Task } from "@/lib/types"
-import { generateTaskSuggestions } from "@/lib/ai-helpers"
 import { Loader2 } from "lucide-react"
 
 interface TaskModalProps {
@@ -24,7 +23,6 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
   const [priority, setPriority] = useState("2")
   const [dueDate, setDueDate] = useState("")
   const [dueTime, setDueTime] = useState("")
-  const [aiSuggestions, setAiSuggestions] = useState("")
   const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -54,7 +52,6 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
       setDueDate("")
       setDueTime("")
     }
-    setAiSuggestions("")
   }, [task, isOpen])
 
   const handleSave = async () => {
@@ -102,20 +99,6 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
     }
   }
 
-  const handleGenerateSuggestions = async () => {
-    if (!title.trim()) return
-
-    setIsGeneratingSuggestions(true)
-    try {
-      const suggestions = await generateTaskSuggestions(title)
-      setAiSuggestions(suggestions)
-      if (suggestions && !description) setDescription(suggestions)
-    } catch (error) {
-      console.error("Error generating suggestions:", error)
-    } finally {
-      setIsGeneratingSuggestions(false)
-    }
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -134,23 +117,10 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
                 onChange={(e) => setTitle(e.target.value)} 
                 placeholder="Task title" 
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={handleGenerateSuggestions}
-                disabled={!title.trim() || isGeneratingSuggestions}
-              >
-                {isGeneratingSuggestions ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <span className="text-xs">AI</span>
-                )}
-              </Button>
             </div>
           </div>
 
-          {/* Description Textarea with AI Suggestions */}
+          {/* Description Textarea */}
           <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
@@ -160,12 +130,6 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
               placeholder="Task description"
               rows={3}
             />
-            {aiSuggestions && (
-              <div className="text-sm text-muted-foreground mt-1 p-2 bg-muted rounded-md">
-                <p className="font-medium text-xs mb-1">AI Suggestion:</p>
-                {aiSuggestions}
-              </div>
-            )}
           </div>
 
           {/* Priority Radio Group */}

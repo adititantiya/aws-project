@@ -4,39 +4,7 @@
 import { Suspense } from "react"
 import TaskList from "@/components/task-list"
 import TaskListSkeleton from "@/components/task-list-skeleton"
-import AiRecommendations from "@/components/ai-recommendations"
 import { ThemeToggle } from "@/components/theme-toggle"
-
-// export default function Home() {
-//   return (
-//     <div className="min-h-screen bg-background">
-//       <header className="border-b">
-//         <div className="container flex h-16 items-center justify-between">
-//           <h1 className="text-2xl font-bold">AI Task Manager</h1>
-//           <ThemeToggle />
-//         </div>
-//       </header>
-//       <main className="container py-6">
-//         <div className="grid gap-6 md:grid-cols-3">
-//           <div className="md:col-span-2">
-//             <div className="mb-6">
-//               <h2 className="text-xl font-semibold mb-4">Your Tasks</h2>
-//               <Suspense fallback={<TaskListSkeleton />}>
-//                 <TaskList />
-//               </Suspense>
-//             </div>
-//           </div>
-//           <div>
-//             <h2 className="text-xl font-semibold mb-4">AI Recommendations</h2>
-//             <AiRecommendations />
-//           </div>
-//         </div>
-//       </main>
-//     </div>
-//   )
-// }
-
-
 
 
 import { useEffect, useState } from 'react';
@@ -95,7 +63,7 @@ export default function HomePage() {
         </div>
       </header>
       <main className="container py-6">
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           <div className="md:col-span-2">
             <div className="mb-6">
               <h2 className="text-xl font-bold mb-4">Your Tasks</h2>
@@ -103,10 +71,6 @@ export default function HomePage() {
                 <TaskList />
               </Suspense>
             </div>
-          </div>
-          <div>
-            <h2 className="text-xl font-bold mb-4">AI Recommendations</h2>
-            <AiRecommendations />
           </div>
         </div>
       </main>

@@ -8,38 +8,105 @@ import { Badge } from "@/components/ui/badge"
 import TaskModal from "@/components/task-modal"
 import type { Task } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import CategorySelector from "@/components/category-selector"
+import { Input } from "@/components/ui/input"
+
 
 export default function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentTask, setCurrentTask] = useState<Task | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
+  const [filters, setFilters] = useState({
+  categoryId: "",
+  priority: "",
+  status: "",
+  q: "",
+  from: "",
+  to: ""
+})
+
   const { toast } = useToast()
 
   const fetchTasks = async () => {
-    setIsLoading(true)
+  setIsLoading(true)
+  try {
+    const query = new URLSearchParams()
+
+    if (filters.categoryId) query.append("categoryId", filters.categoryId)
+    if (filters.priority) query.append("priority", filters.priority)
+    if (filters.status) query.append("status", filters.status)
+    if (filters.q) query.append("q", filters.q)
+    if (filters.from) query.append("from", filters.from)
+    if (filters.to) query.append("to", filters.to)
+
+    const response = await fetch(`/api/tasks?${query.toString()}`)
+    if (!response.ok) throw new Error("Failed to fetch tasks")
+    const data = await response.json()
+    setTasks(data)
+  } catch (error) {
+    console.error("Error fetching tasks:", error)
+    toast({
+      title: "Error loading tasks",
+      description: "Could not fetch your tasks. Please try again.",
+      variant: "destructive",
+    })
+  } finally {
+    setIsLoading(false)
+  }
+}
+
+
+   const handleStatusChange = async (task: Task, newStatus: string) => {
     try {
-      const response = await fetch('/api/tasks')
-      if (!response.ok) {
-        throw new Error('Failed to fetch tasks')
-      }
-      const data = await response.json()
-      setTasks(data)
-    } catch (error) {
-      console.error('Error fetching tasks:', error)
-      toast({
-        title: "Error loading tasks",
-        description: "Could not fetch your tasks. Please try again.",
-        variant: "destructive"
+      const updatedTask = { ...task, status: newStatus }
+      const response = await fetch("/api/tasks", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedTask),
       })
-    } finally {
-      setIsLoading(false)
+
+      if (!response.ok) throw new Error("Failed to update status")
+
+      setTasks(tasks.map((t) => (t.id === task.id ? updatedTask : t)))
+      toast({ title: "Status updated", description: "Task status updated successfully." })
+    } catch (error) {
+      toast({
+        title: "Error updating status",
+        description: "Could not update task status.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleCategoryChange = async (task: Task, categoryId: string | null) => {
+    try {
+      const updatedTask = { ...task, category: { id: categoryId } }
+
+      const response = await fetch("/api/tasks", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedTask),
+      })
+
+      if (!response.ok) throw new Error("Failed to update category")
+
+      setTasks(tasks.map((t) => (t.id === task.id ? updatedTask : t)))
+      toast({ title: "Category updated", description: "Task category updated successfully." })
+    } catch (error) {
+      toast({
+        title: "Error updating category",
+        description: "Could not update task category.",
+        variant: "destructive",
+      })
     }
   }
 
   useEffect(() => {
     fetchTasks()
-  }, [])
+  }, [filters])
 
   const handleAddTask = () => {
     setCurrentTask(null)
@@ -164,11 +231,79 @@ export default function TaskList() {
           <Button variant="ghost" size="sm" onClick={fetchTasks} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
+          
         </div>
         <Button onClick={handleAddTask}>
           <Plus className="mr-2 h-4 w-4" /> Add Task
         </Button>
       </div>
+      <div className="flex flex-wrap gap-2 mb-4">
+          {/* Search */}
+          <Input
+            placeholder="Search tasks..."
+            value={filters.q}
+            onChange={(e) => setFilters({ ...filters, q: e.target.value })}
+            className="w-[200px]"
+          />
+
+          {/* Priority filter */}
+          <select
+            value={filters.priority}
+            onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
+            className="border rounded-md px-2 py-1"
+          >
+            <option value="">All Priorities</option>
+            <option value="1">Low</option>
+            <option value="2">Medium</option>
+            <option value="3">High</option>
+          </select>
+
+          {/* Status filter */}
+          <select
+            value={filters.status}
+            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            className="border rounded-md px-2 py-1"
+          >
+            <option value="">All Statuses</option>
+            <option value="Todo">Todo</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Done">Done</option>
+          </select>
+
+          {/* Category filter */}
+          <select
+            value={filters.categoryId}
+            onChange={(e) => setFilters({ ...filters, categoryId: e.target.value })}
+            className="border rounded-md px-2 py-1"
+          >
+            <option value="">All Categories</option>
+            {/* Map your categories here */}
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+
+          {/* Date range */}
+          <Input
+            type="date"
+            value={filters.from}
+            onChange={(e) => setFilters({ ...filters, from: e.target.value })}
+          />
+          <Input
+            type="date"
+            value={filters.to}
+            onChange={(e) => setFilters({ ...filters, to: e.target.value })}
+          />
+
+          {/* Apply filters */}
+          <Button onClick={fetchTasks}>Apply Filters</Button>
+
+          {/* Clear filters */}
+          <Button variant="ghost" onClick={() => { setFilters({ categoryId: "", priority: "", status: "", q: "", from: "", to: "" }); fetchTasks() }}>
+            Clear
+          </Button>
+        </div>
+
 
       {isLoading ? (
         <Card>
@@ -238,13 +373,35 @@ export default function TaskList() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex space-x-1">
+                      <div className="flex-col justify-end gap-2 mt-3">
+                        <div className="flex space-x-1">
                         <Button variant="ghost" size="icon" onClick={() => handleEditTask(task)}>
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleDeleteTask(task.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
+                      </div>
+                        <div className="flex flex-col gap-2 mt-3">
+                          {/* Status dropdown */}
+                          <Select onValueChange={(value) => handleStatusChange(task, value)} value={task.status}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Change Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="PENDING">Pending</SelectItem>
+                              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                              <SelectItem value="COMPLETED">Completed</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          {/* Category dropdown */}
+                          <CategorySelector
+                            selectedCategoryId={task.category?.id ?? null}
+                            onChange={(newCategoryId) => handleCategoryChange(task, newCategoryId)}
+                          />
+                        </div>
+                      
                       </div>
                     </div>
                   </CardContent>

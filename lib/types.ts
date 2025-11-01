@@ -1,11 +1,17 @@
 export interface Task {
+  status: string
   id: string
   title: string
   description: string
   priority: string
   dueDate: string
   completed: boolean
+  category?: {
+    id: string|null
+    name?: string
+  } | null
 }
+
 
 // lib/types.ts
 export interface User {
