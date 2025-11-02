@@ -11,6 +11,7 @@ import { useToast } from "../hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import CategorySelector from "../components/category-selector"
 import { Input } from "../components/ui/input"
+import { API_BASE_URL } from "../lib/api";
 
 
 export default function TaskList() {
@@ -31,64 +32,63 @@ export default function TaskList() {
   const { toast } = useToast()
 
   const fetchTasks = async () => {
-  setIsLoading(true)
+    setIsLoading(true)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/tasks`)
+      const data = await res.json()
+      setTasks(data)
+    } catch (error) {
+      console.error("Error fetching tasks:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchTasks()
+  }, [])
+
+
+  const handleStatusChange = async (task: Task, newStatus: string) => {
   try {
-    const query = new URLSearchParams()
+    // Create the updated task object
+    const updatedTask = { ...task, status: newStatus }
 
-    if (filters.categoryId) query.append("categoryId", filters.categoryId)
-    if (filters.priority) query.append("priority", filters.priority)
-    if (filters.status) query.append("status", filters.status)
-    if (filters.q) query.append("q", filters.q)
-    if (filters.from) query.append("from", filters.from)
-    if (filters.to) query.append("to", filters.to)
+    // Send update to backend
+    const response = await fetch(`${API_BASE_URL}/api/tasks/${task.id}/status?status=${newStatus}`, {
+      method: "PUT",
+    })
 
-    const response = await fetch(`/api/tasks?${query.toString()}`)
-    if (!response.ok) throw new Error("Failed to fetch tasks")
-    const data = await response.json()
-    setTasks(data)
-  } catch (error) {
-    console.error("Error fetching tasks:", error)
+    if (!response.ok) {
+      throw new Error(`Failed to update status: ${response.statusText}`)
+    }
+
+    // Update state locally after success
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t))
+    )
+
     toast({
-      title: "Error loading tasks",
-      description: "Could not fetch your tasks. Please try again.",
+      title: "Status updated",
+      description: `Task "${task.title}" marked as ${newStatus}.`,
+    })
+  } catch (error) {
+    console.error("Error updating task:", error)
+    toast({
+      title: "Error updating status",
+      description: "Could not update task status. Please try again.",
       variant: "destructive",
     })
-  } finally {
-    setIsLoading(false)
   }
 }
 
-
-   const handleStatusChange = async (task: Task, newStatus: string) => {
-    try {
-      const updatedTask = { ...task, status: newStatus }
-      const response = await fetch("/api/tasks", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedTask),
-      })
-
-      if (!response.ok) throw new Error("Failed to update status")
-
-      setTasks(tasks.map((t) => (t.id === task.id ? updatedTask : t)))
-      toast({ title: "Status updated", description: "Task status updated successfully." })
-    } catch (error) {
-      toast({
-        title: "Error updating status",
-        description: "Could not update task status.",
-        variant: "destructive",
-      })
-    }
-  }
 
   const handleCategoryChange = async (task: Task, categoryId: string | null) => {
     try {
       const updatedTask = { ...task, category: { id: categoryId } }
 
-      const response = await fetch("/api/tasks", {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${task.id}/category?categoryId=${categoryId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedTask),
       })
 
       if (!response.ok) throw new Error("Failed to update category")
@@ -120,7 +120,7 @@ export default function TaskList() {
 
   const handleDeleteTask = async (taskId: string) => {
     try {
-      const response = await fetch(`/api/tasks?id=${taskId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
         method: 'DELETE'
       })
       
@@ -149,7 +149,7 @@ export default function TaskList() {
     try {
       const updatedTask = { ...task, completed: !task.completed }
       
-      const response = await fetch('/api/tasks', {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${task.id}/toggle`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -220,6 +220,8 @@ export default function TaskList() {
     
     return { date: formattedDate, time: formattedTime }
   }
+
+  if (isLoading) return <p className="text-gray-500">Loading tasks...</p>
 
   return (
     <div>
@@ -392,7 +394,7 @@ export default function TaskList() {
                               <SelectValue placeholder="Change Status" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="PENDING">Pending</SelectItem>
+                              <SelectItem value="TODO">Pending</SelectItem>
                               <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                               <SelectItem value="COMPLETED">Completed</SelectItem>
                             </SelectContent>

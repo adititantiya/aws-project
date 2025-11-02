@@ -1,6 +1,5 @@
 package com.aws_project.task_manager.controller;
 
-import com.aws_project.task_manager.model.Priority;
 import com.aws_project.task_manager.model.Task;
 import com.aws_project.task_manager.repo.TaskRepo;
 import com.aws_project.task_manager.spec.TaskSpecifications;
@@ -25,7 +24,7 @@ public class TaskQueryController {
     @GetMapping("/search")
     public List<Task> searchTasks(
             @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Priority priority,
+            @RequestParam(required = false) Task.Priority priority,
             @RequestParam(required = false) Task.Status status,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String from,

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
+import { API_BASE_URL } from "../lib/api"
 import {
   Select,
   SelectTrigger,
@@ -30,7 +31,7 @@ export default function CategorySelector({
   // --- Fetch all categories ---
   const fetchCategories = async () => {
     try {
-      const res = await fetch("/api/categories")
+      const res = await fetch(`${API_BASE_URL}/api/categories`)
       const data = await res.json()
       setCategories(data)
     } catch (error) {
@@ -52,7 +53,7 @@ export default function CategorySelector({
     if (!newCategory.trim()) return
     setIsSaving(true)
     try {
-      const res = await fetch("/api/categories", {
+      const res = await fetch(`${API_BASE_URL}/api/categories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newCategory.trim() }),

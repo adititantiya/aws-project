@@ -9,6 +9,8 @@ import { Label } from "../components/ui/label"
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group"
 import type { Task } from "../lib/types"
 import { Loader2 } from "lucide-react"
+import { API_BASE_URL } from "../lib/api";
+
 
 interface TaskModalProps {
   isOpen: boolean
@@ -20,11 +22,12 @@ interface TaskModalProps {
 export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskModalProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [priority, setPriority] = useState("2")
+  const [priority, setPriority] = useState("")
   const [dueDate, setDueDate] = useState("")
   const [dueTime, setDueTime] = useState("")
   const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const priorityMap = ["HIGH", "MEDIUM", "LOW"]
 
   useEffect(() => {
     if (task) {
@@ -40,7 +43,7 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
         // Format time as HH:MM
         const hours = dueDateTime.getHours().toString().padStart(2, '0')
         const minutes = dueDateTime.getMinutes().toString().padStart(2, '0')
-        setDueTime(`${hours}:${minutes}`)
+        setDueTime('${hours}:${minutes}')
       } else {
         setDueDate("")
         setDueTime("")
@@ -55,49 +58,56 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
   }, [task, isOpen])
 
   const handleSave = async () => {
-    if (!title.trim()) return
+  if (!title.trim()) return
 
-    setIsSaving(true)
-    try {
-      // Combine date and time for the ISO string
-      let dueDateTimeISO = null
-      if (dueDate) {
-        const dateTimeString = `${dueDate}T${dueTime || '00:00'}`
-        dueDateTimeISO = new Date(dateTimeString).toISOString()
-      }
-
-      const taskData = {
-        title,
-        description,
-        priority,
-        dueDate: dueDateTimeISO,
-        completed: task?.completed || false
-      }
-
-      const url = "/api/tasks"
-      const method = task ? "PUT" : "POST"
-
-      console.log(task ? { ...taskData, id: task.id } : taskData);
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(task ? { ...taskData, id: task.id } : taskData)
-      })
-
-      if (!response.ok) throw new Error("Failed to save task")
-
-      onTaskSaved() // Call the callback to refresh task list
-      onClose()
-    } catch (error) {
-      console.error("Error saving task:", error)
-      alert("Failed to save task. Please try again.")
-    } finally {
-      setIsSaving(false)
+  setIsSaving(true)
+  try {
+    // Combine date and time for ISO format
+    let dueDateTimeISO = null
+    if (dueDate) {
+      const dateTimeString = `${dueDate}T${dueTime || '00:00'}`
+      dueDateTimeISO = new Date(dateTimeString).toISOString()
     }
+
+    // Task payload
+    const taskData = {
+      title,
+      description,
+      priority: priorityMap[Number(priority)],
+      dueDate: dueDateTimeISO,
+      completed: task?.completed || false,
+      status: task?.status || "TODO",
+      categoryId: null,
+    }
+    console.log("Saving task with data:", taskData)
+
+    // ✅ Correct API URL and method
+    const url = task
+      ? `${API_BASE_URL}/api/tasks/${task.id}}`
+      : `${API_BASE_URL}/api/tasks`
+
+    const method = task ? "PUT" : "POST"
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(taskData),
+    })
+
+    if (!response.ok) throw new Error("Failed to save task")
+
+    onTaskSaved() // Refresh list
+    onClose()
+  } catch (error) {
+    console.error("Error saving task:", error)
+    alert("Failed to save task. Please try again.")
+  } finally {
+    setIsSaving(false)
   }
+}
+
 
 
   return (

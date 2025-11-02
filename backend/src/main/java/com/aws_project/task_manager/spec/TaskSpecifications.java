@@ -1,6 +1,5 @@
 package com.aws_project.task_manager.spec;
 
-import com.aws_project.task_manager.model.Priority;
 import com.aws_project.task_manager.model.Task;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -20,7 +19,7 @@ public final class TaskSpecifications {
         return (root, query, cb) -> status == null ? null : cb.equal(root.get("status"), status);
     }
 
-    public static Specification<Task> hasPriority(Priority priority) {
+    public static Specification<Task> hasPriority(Task.Priority priority) {
         return (root, query, cb) -> priority == null ? null : cb.equal(root.get("priority"), priority);
     }
 

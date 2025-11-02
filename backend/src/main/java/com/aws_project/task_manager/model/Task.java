@@ -1,8 +1,11 @@
 package com.aws_project.task_manager.model;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 public class Task {
@@ -19,8 +22,15 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private Priority priority;
 
+    public enum Priority {
+        HIGH,
+        MEDIUM,
+        LOW
+    }
+
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @JsonBackReference
     private Category category;
 
     @Enumerated(EnumType.STRING)
@@ -29,7 +39,7 @@ public class Task {
     public enum Status {
         TODO,
         IN_PROGRESS,
-        DONE
+        COMPLETED
     }
 
     public int getId() {
@@ -103,4 +113,5 @@ public class Task {
     public void setStatus(Status status) {
         this.status = status;
     }
+
 }
