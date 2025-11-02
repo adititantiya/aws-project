@@ -4,8 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.aws_project.task_manager.model.Category;
 import com.aws_project.task_manager.model.Task;
@@ -111,12 +115,32 @@ public class TaskController {
     }
 
     @PutMapping("/{id}/category")
-    public Task updateTaskCategory(@PathVariable Long id, @RequestParam Long categoryId) {
-        Task task = taskRepo.findById(id).orElseThrow(() -> new RuntimeException("Task not found"));
-        Category category = categoryRepo.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-        task.setCategory(category);
-        return taskRepo.save(task);
+    public ResponseEntity<?> updateTaskCategory(
+            @PathVariable Long id,
+            @RequestParam Long categoryId) {
+
+        try {
+            System.out.println("Updating category for task " + id + " with category " + categoryId);
+
+            Task task = taskRepo.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Task not found with ID: " + id));
+
+            Category category = categoryRepo.findById(categoryId)
+                    .orElseThrow(() -> new RuntimeException("Category not found with ID: " + categoryId));
+
+            task.setCategory(category);
+            taskRepo.save(task);
+
+            return ResponseEntity.ok(task);
+
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating task category: " + e.getMessage());
+        }
     }
 
     @PutMapping("/{id}/status")

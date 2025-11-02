@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 public class Task {
@@ -31,6 +32,7 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "category_id")
     @JsonBackReference
+    @JsonManagedReference
     private Category category;
 
     @Enumerated(EnumType.STRING)
