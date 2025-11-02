@@ -181,11 +181,11 @@ export default function TaskList() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "3":
+      case "HIGH":
         return "bg-red-500 hover:bg-red-600"
-      case "2":
+      case "MEDIUM":
         return "bg-yellow-500 hover:bg-yellow-600"
-      case "1":
+      case "LOW":
         return "bg-green-500 hover:bg-green-600"
       default:
         return "bg-blue-500 hover:bg-blue-600"
@@ -360,12 +360,13 @@ export default function TaskList() {
                           <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
                           <div className="flex flex-wrap items-center mt-2 gap-2">
                             <Badge variant="secondary" className={getPriorityColor(task.priority)}>
-                              {task.priority === "1" && "Low"}
-                              {task.priority === "2" && "Medium"}
-                              {task.priority === "3" && "High"}
-                              {task.priority !== "1" && task.priority !== "2" && task.priority !== "3" &&
-                                task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                              {task.priority === "LOW" && "Low"}
+                              {task.priority === "MEDIUM" && "Medium"}
+                              {task.priority === "HIGH" && "High"}
+                              {!["LOW", "MEDIUM", "HIGH"].includes(task.priority) &&
+                                task.priority.charAt(0).toUpperCase() + task.priority.slice(1).toLowerCase()}
                             </Badge>
+
                             {formattedDateTime && (
                               <Badge
                                 variant="outline"

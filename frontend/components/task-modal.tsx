@@ -27,7 +27,6 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
   const [dueTime, setDueTime] = useState("")
   const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const priorityMap = ["HIGH", "MEDIUM", "LOW"]
 
   useEffect(() => {
     if (task) {
@@ -73,7 +72,7 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
     const taskData = {
       title,
       description,
-      priority: priorityMap[Number(priority)],
+      priority,
       dueDate: dueDateTimeISO,
       completed: task?.completed || false,
       status: task?.status || "TODO",
@@ -151,19 +150,19 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
               className="flex space-x-2"
             >
               <div className="flex items-center space-x-1">
-                <RadioGroupItem value="1" id="low" />
+                <RadioGroupItem value="LOW" id="low" />
                 <Label htmlFor="low" className="text-green-500">
                   Low
                 </Label>
               </div>
               <div className="flex items-center space-x-1">
-                <RadioGroupItem value="2" id="medium" />
+                <RadioGroupItem value="MEDIUM" id="medium" />
                 <Label htmlFor="medium" className="text-yellow-500">
                   Medium
                 </Label>
               </div>
               <div className="flex items-center space-x-1">
-                <RadioGroupItem value="3" id="high" />
+                <RadioGroupItem value="HIGH" id="high" />
                 <Label htmlFor="high" className="text-red-500">
                   High
                 </Label>
