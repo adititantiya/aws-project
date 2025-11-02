@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/database';
+import db from '../lib/database';
 
 // Handle user registration
 export async function POST(request: Request) {
