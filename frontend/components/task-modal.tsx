@@ -24,7 +24,6 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
   const [description, setDescription] = useState("")
   const [priority, setPriority] = useState("")
   const [dueDate, setDueDate] = useState("")
-  const [dueTime, setDueTime] = useState("")
   const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -34,25 +33,19 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
       setDescription(task.description || "")
       setPriority(task.priority || "2")
       
-      // Format date and time from the stored ISO string
+      // Format date from the stored ISO string
       if (task.dueDate) {
         const dueDateTime = new Date(task.dueDate)
         setDueDate(dueDateTime.toISOString().split("T")[0])
         
-        // Format time as HH:MM
-        const hours = dueDateTime.getHours().toString().padStart(2, '0')
-        const minutes = dueDateTime.getMinutes().toString().padStart(2, '0')
-        setDueTime('${hours}:${minutes}')
       } else {
         setDueDate("")
-        setDueTime("")
       }
     } else {
       setTitle("")
       setDescription("")
       setPriority("2")
       setDueDate("")
-      setDueTime("")
     }
   }, [task, isOpen])
 
@@ -61,10 +54,10 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
 
   setIsSaving(true)
   try {
-    // Combine date and time for ISO format
+    // Combine date for ISO format
     let dueDateTimeISO = null
     if (dueDate) {
-      const dateTimeString = `${dueDate}T${dueTime || '00:00'}`
+      const dateTimeString = `${dueDate}`
       dueDateTimeISO = new Date(dateTimeString).toISOString()
     }
 
@@ -180,15 +173,6 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
                 type="date" 
                 value={dueDate} 
                 onChange={(e) => setDueDate(e.target.value)} 
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="dueTime">Due Time</Label>
-              <Input 
-                id="dueTime" 
-                type="time" 
-                value={dueTime} 
-                onChange={(e) => setDueTime(e.target.value)} 
               />
             </div>
           </div>

@@ -15,7 +15,6 @@ import com.aws_project.task_manager.repo.TaskRepo;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
@@ -70,9 +69,7 @@ public class TaskController {
                 String dueDateStr = (String) payload.get("dueDate");
                 Instant instant = Instant.parse(dueDateStr);
                 LocalDate localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate();
-                LocalTime localTime = instant.atZone(ZoneId.systemDefault()).toLocalTime();
                 task.setDueDate(localDate);
-                task.setDueTime(localTime);
             }
 
             if (payload.get("categoryId") != null) {
@@ -102,9 +99,7 @@ public class TaskController {
             String dueDateStr = (String) payload.get("dueDate");
             Instant instant = Instant.parse(dueDateStr);
             LocalDate localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate();
-            LocalTime localTime = instant.atZone(ZoneId.systemDefault()).toLocalTime();
             task.setDueDate(localDate);
-            task.setDueTime(localTime);
         }
 
         if (payload.get("categoryId") != null) {

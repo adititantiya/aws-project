@@ -3,7 +3,6 @@ package com.aws_project.task_manager.model;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -17,7 +16,6 @@ public class Task {
     private String title;
     private String description;
     private LocalDate dueDate;
-    private LocalTime dueTime;
     private boolean completed;
 
     @Enumerated(EnumType.STRING)
@@ -82,14 +80,6 @@ public class Task {
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
-    }
-
-    public LocalTime getDueTime() {
-        return dueTime;
-    }
-
-    public void setDueTime(LocalTime dueTime) {
-        this.dueTime = dueTime;
     }
 
     public Priority getPriority() {

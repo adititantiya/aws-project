@@ -256,7 +256,7 @@ export default function TaskList() {
     return new Date(dueDate) < new Date() && dueDate
   }
 
-  // Format date and time from ISO string
+  // Format date from ISO string
   const formatDateTime = (dateTimeString: string) => {
     if (!dateTimeString) return null
     
@@ -270,15 +270,7 @@ export default function TaskList() {
     }
     const formattedDate = dateTime.toLocaleDateString(undefined, dateOptions)
     
-    // Format time
-    const timeOptions: Intl.DateTimeFormatOptions = { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: true
-    }
-    const formattedTime = dateTime.toLocaleTimeString(undefined, timeOptions)
-    
-    return { date: formattedDate, time: formattedTime }
+    return { date: formattedDate }
   }
 
   if (isLoading) return <p className="text-gray-500">Loading tasks...</p>
@@ -441,7 +433,7 @@ export default function TaskList() {
                                 className={`flex items-center ${isOverdue(task.dueDate) && !task.completed ? "text-red-500 border-red-500" : ""}`}
                               >
                                 <Clock className="mr-1 h-3 w-3" />
-                                {formattedDateTime.date} at {formattedDateTime.time}
+                                {formattedDateTime.date}
                               </Badge>
                             )}
                           </div>
