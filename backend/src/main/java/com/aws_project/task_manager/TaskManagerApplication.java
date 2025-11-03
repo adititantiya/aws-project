@@ -27,6 +27,12 @@ public class TaskManagerApplication {
 			personal.setName("Personal");
 			categoryRepo.save(personal);
 		}
+
+		if (categoryRepo.findByName("School").isEmpty()) {
+			Category school = new Category();
+			school.setName("School");
+			categoryRepo.save(school);
+		}
 		
 	}
 }
