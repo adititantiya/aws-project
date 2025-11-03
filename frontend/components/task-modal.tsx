@@ -68,6 +68,7 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
       dueDateTimeISO = new Date(dateTimeString).toISOString()
     }
 
+    const categoryId = 1;
     // Task payload
     const taskData = {
       title,
@@ -76,21 +77,21 @@ export default function TaskModal({ isOpen, onClose, onTaskSaved, task }: TaskMo
       dueDate: dueDateTimeISO,
       completed: task?.completed || false,
       status: task?.status || "TODO",
-      categoryId: null,
     }
     console.log("Saving task with data:", taskData)
 
     // ✅ Correct API URL and method
     const url = task
-      ? `${API_BASE_URL}/api/tasks/${task.id}}`
-      : `${API_BASE_URL}/api/tasks`
+  ? `${API_BASE_URL}/api/tasks/${task.id}/update`
+  : `${API_BASE_URL}/api/tasks`
+
 
     const method = task ? "PUT" : "POST"
-
     const response = await fetch(url, {
       method,
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json"
       },
       body: JSON.stringify(taskData),
     })

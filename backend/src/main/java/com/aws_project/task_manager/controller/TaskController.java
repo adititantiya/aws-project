@@ -7,9 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import com.aws_project.task_manager.model.Category;
 import com.aws_project.task_manager.model.Task;
@@ -91,25 +88,30 @@ public class TaskController {
         }
     }
 
-    @PutMapping("/{id}")
-    public Task updateTask(@PathVariable Long id, @RequestBody Task updatedTask,
-            @RequestParam(required = false) Long categoryId) {
+    @PutMapping("/{id}/update")
+    public Task updateTask(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         Task task = taskRepo.findById(id).orElseThrow(() -> new RuntimeException("Task not found"));
 
-        task.setTitle(updatedTask.getTitle());
-        task.setDescription(updatedTask.getDescription());
-        task.setDueDate(updatedTask.getDueDate());
-        task.setDueTime(updatedTask.getDueTime());
-        task.setPriority(updatedTask.getPriority());
-        task.setCompleted(updatedTask.isCompleted());
-        task.setStatus(updatedTask.getStatus()); // update status
+        task.setTitle((String) payload.get("title"));
+        task.setDescription((String) payload.get("description"));
+        task.setPriority(Task.Priority.valueOf(((String) payload.get("priority")).toUpperCase()));
+        task.setCompleted(payload.get("completed") != null && (Boolean) payload.get("completed"));
+        task.setStatus(Task.Status.valueOf(((String) payload.get("status")).toUpperCase())); // update status
 
-        Category category = categoryId != null
-                ? categoryRepo.findById(categoryId).orElseThrow(() -> new RuntimeException("Category not found"))
-                : categoryRepo.findByName("Uncategorized")
-                        .orElseThrow(() -> new RuntimeException("Default category missing"));
+        if (payload.get("dueDate") != null) {
+            String dueDateStr = (String) payload.get("dueDate");
+            Instant instant = Instant.parse(dueDateStr);
+            LocalDate localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalTime localTime = instant.atZone(ZoneId.systemDefault()).toLocalTime();
+            task.setDueDate(localDate);
+            task.setDueTime(localTime);
+        }
 
-        task.setCategory(category);
+        if (payload.get("categoryId") != null) {
+            Long categoryId = Long.parseLong(payload.get("categoryId").toString());
+            Category category = categoryRepo.findById(categoryId).orElse(null);
+            task.setCategory(category);
+        }
 
         return taskRepo.save(task);
     }
