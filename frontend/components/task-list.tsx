@@ -18,8 +18,10 @@ export default function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentTask, setCurrentTask] = useState<Task | null>(null)
+  const [totalTasks, setTotalTasks] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(false)
   const [filters, setFilters] = useState({
   categoryId: "",
   priority: "",
@@ -37,6 +39,7 @@ export default function TaskList() {
       const res = await fetch(`${API_BASE_URL}/api/tasks`)
       const data = await res.json()
       setTasks(data)
+      setTotalTasks(data.length)
     } catch (error) {
       console.error("Error fetching tasks:", error)
     } finally {
@@ -44,9 +47,70 @@ export default function TaskList() {
     }
   }
 
+  const fetchCategories = async () => {
+    setCategoriesLoading(true)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/categories`)
+      if (!res.ok) throw new Error('Failed to fetch categories')
+      const data = await res.json()
+      // defend against non-array responses
+      setCategories(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error loading categories', err)
+      setCategories([])
+    } finally {
+      setCategoriesLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchTasks()
+    fetchCategories()
   }, [])
+
+  //Search tasks by title only
+  const fetchSearchedTasks = async () => {
+    setIsLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (filters.q) params.append("q", filters.q)
+
+      const res = await fetch(`${API_BASE_URL}/api/tasks/search?${params.toString()}`)
+      if (!res.ok) throw new Error("Failed to fetch searched tasks")
+
+      const data = await res.json()
+      setTasks(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error("Error fetching searched tasks:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+
+  //Filter tasks by category, priority, status, or date range
+  const fetchFilteredTasks = async () => {
+    setIsLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (filters.categoryId) params.append("categoryId", filters.categoryId)
+      if (filters.priority) params.append("priority", filters.priority)
+      if (filters.status) params.append("status", filters.status)
+      if (filters.from) params.append("from", filters.from)
+      if (filters.to) params.append("to", filters.to)
+
+      const res = await fetch(`${API_BASE_URL}/api/tasks/filter?${params.toString()}`)
+      if (!res.ok) throw new Error("Failed to fetch filtered tasks")
+
+      const data = await res.json()
+      setTasks(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error("Error fetching filtered tasks:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
 
 
   const handleStatusChange = async (task: Task, newStatus: string) => {
@@ -103,10 +167,6 @@ export default function TaskList() {
       })
     }
   }
-
-  useEffect(() => {
-    fetchTasks()
-  }, [filters])
 
   const handleAddTask = () => {
     setCurrentTask(null)
@@ -228,7 +288,7 @@ export default function TaskList() {
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
-            {tasks.filter((task) => task.completed).length} of {tasks.length} tasks completed
+            {tasks.filter((task) => task.completed).length} of {totalTasks} tasks completed
           </span>
           <Button variant="ghost" size="sm" onClick={fetchTasks} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -239,15 +299,19 @@ export default function TaskList() {
           <Plus className="mr-2 h-4 w-4" /> Add Task
         </Button>
       </div>
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="gap-2 mb-4">
+        <div className="flex flex-row mb-4 gap-2">
           {/* Search */}
           <Input
-            placeholder="Search tasks..."
+            placeholder="Search tasks by title..."
             value={filters.q}
             onChange={(e) => setFilters({ ...filters, q: e.target.value })}
             className="rounded-xl"
           />
-
+          {/* Search Button */}
+          <Button onClick={fetchSearchedTasks} className="rounded-xl">Search</Button>
+          </div>
+          <div className="flex flex-row gap-2">
           {/* Priority filter */}
           <select
             value={filters.priority}
@@ -255,9 +319,9 @@ export default function TaskList() {
             className="border rounded-xl px-2 py-1"
           >
             <option value="" >All Priorities</option>
-            <option value="1">Low</option>
-            <option value="2">Medium</option>
-            <option value="3">High</option>
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
           </select>
 
           {/* Status filter */}
@@ -267,9 +331,9 @@ export default function TaskList() {
             className="border rounded-xl px-2 py-1"
           >
             <option value="">All Statuses</option>
-            <option value="Todo">Todo</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Done">Done</option>
+            <option value="TODO">Pending</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
           </select>
 
           {/* Category filter */}
@@ -279,10 +343,13 @@ export default function TaskList() {
             className="border rounded-xl px-2 py-1"
           >
             <option value="">All Categories</option>
-            {/* Map your categories here */}
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
+            {categoriesLoading ? (
+              <option disabled>Loading...</option>
+            ) : (
+              categories.map((cat) => (
+                <option key={cat.id} value={String(cat.id)}>{cat.name}</option>
+              ))
+            )}
           </select>
 
           {/* Date range */}
@@ -300,13 +367,14 @@ export default function TaskList() {
           />
 
           {/* Apply filters */}
-          <Button onClick={fetchTasks} className="rounded-xl">Apply Filters</Button>
+          <Button onClick={fetchFilteredTasks} className="rounded-xl">Apply Filters</Button>
 
           {/* Clear filters */}
-          <Button variant="ghost" onClick={() => { setFilters({ categoryId: "", priority: "", status: "", q: "", from: "", to: "" }); fetchTasks() }}
+          <Button variant="ghost" onClick={fetchTasks}
             className="border rounded-xl">
             Clear
           </Button>
+        </div>
         </div>
 
 

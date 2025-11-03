@@ -38,14 +38,13 @@ public final class TaskSpecifications {
         };
     }
 
-    public static Specification<Task> titleOrDescriptionContains(String q) {
+    public static Specification<Task> titleContains(String q) {
         return (root, query, cb) -> {
             if (q == null || q.trim().isEmpty())
                 return null;
             String pattern = "%" + q.trim().toLowerCase() + "%";
             Expression<String> titleLower = cb.lower(root.get("title"));
-            Expression<String> descLower = cb.lower(root.get("description"));
-            return cb.or(cb.like(titleLower, pattern), cb.like(descLower, pattern));
+            return cb.like(titleLower, pattern);
         };
     }
 }

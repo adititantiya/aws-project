@@ -22,11 +22,16 @@ public class TaskQueryController {
     }
 
     @GetMapping("/search")
-    public List<Task> searchTasks(
+    public List<Task> searchTasks(@RequestParam(required = false) String q) {
+        Specification<Task> spec = Specification.where(TaskSpecifications.titleContains(q));
+        return taskRepo.findAll(spec);
+    }
+
+    @GetMapping("/filter")
+    public List<Task> filterTasks(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Task.Priority priority,
             @RequestParam(required = false) Task.Status status,
-            @RequestParam(required = false) String q,
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to,
             @RequestParam(required = false, defaultValue = "dueDate,asc") String sort) {
@@ -37,16 +42,12 @@ public class TaskQueryController {
         Specification<Task> spec = Specification.where(TaskSpecifications.hasCategoryId(categoryId))
                 .and(TaskSpecifications.hasPriority(priority))
                 .and(TaskSpecifications.hasStatus(status))
-                .and(TaskSpecifications.dueDateBetween(fromDate, toDate))
-                .and(TaskSpecifications.titleOrDescriptionContains(q));
+                .and(TaskSpecifications.dueDateBetween(fromDate, toDate));
 
         String[] sortParts = sort.split(",");
-        Sort s;
-        if (sortParts.length == 2) {
-            s = Sort.by(Sort.Direction.fromString(sortParts[1].trim()), sortParts[0].trim());
-        } else {
-            s = Sort.by(sort);
-        }
+        Sort s = (sortParts.length == 2)
+                ? Sort.by(Sort.Direction.fromString(sortParts[1].trim()), sortParts[0].trim())
+                : Sort.by(sort);
 
         return taskRepo.findAll(spec, s);
     }
