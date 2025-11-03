@@ -11,7 +11,7 @@ import { useToast } from "../hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import CategorySelector from "../components/category-selector"
 import { Input } from "../components/ui/input"
-import { API_BASE_URL } from "../lib/api";
+import { API_BASE_URL } from "../lib/api"
 
 
 export default function TaskList() {

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { API_BASE_URL } from "../../lib/api";
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -17,8 +18,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth', {
-        method: 'PUT',
+      const response = await fetch(`${ API_BASE_URL }/api/auth/login`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -32,9 +33,10 @@ export default function LoginPage() {
       }
 
       // Store user data in localStorage (in a real app, use more secure methods)
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('user', JSON.stringify(data));
       
       // Redirect to home page
+      console.log("login success");
       router.push('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred!');
